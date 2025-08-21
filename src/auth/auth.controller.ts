@@ -37,38 +37,38 @@ export class AuthController {
     return createAuth;
   }
 
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  @ApiBody({ type: GoogleLoginDto })
-  @Post('google/log-in')
-  async googleLogin(@Body() body: GoogleLoginDto) {
-    const createAuth = await this.authService.login(body);
-    return createAuth;
-  }
+  // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  // @ApiBody({ type: GoogleLoginDto })
+  // @Post('google/log-in')
+  // async googleLogin(@Body() body: GoogleLoginDto) {
+  //   const createAuth = await this.authService.login(body);
+  //   return createAuth;
+  // }
 
-  /**
-   *
-   * @param body
-   * @returns
-   */
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  @ApiBody({ type: SignUpUserDto })
-  @Post('sign-up')
-  async signup(@Body() body: SignUpUserDto) {
-    const createAuth = await this.authService.signUpUser(body);
-    return { message: 'User signed up successfully', data: createAuth };
-  }
+  // /**
+  //  *
+  //  * @param body
+  //  * @returns
+  //  */
+  // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  // @ApiBody({ type: SignUpUserDto })
+  // @Post('sign-up')
+  // async signup(@Body() body: SignUpUserDto) {
+  //   const createAuth = await this.authService.signUpUser(body);
+  //   return { message: 'User signed up successfully', data: createAuth };
+  // }
 
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  @ApiBody({ type: ForgotPasswordDto })
-  @Post('forgot-password')
-  async forgotPassword(@Body() body: ForgotPasswordDto) {
-    return this.authService.forgotPassword(body.email);
-  }
+  // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  // @ApiBody({ type: ForgotPasswordDto })
+  // @Post('forgot-password')
+  // async forgotPassword(@Body() body: ForgotPasswordDto) {
+  //   return this.authService.forgotPassword(body.email);
+  // }
 
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  @ApiBody({ type: ResetPasswordDto })
-  @Post('reset-password')
-  async resetPassword(@Body() body: ResetPasswordDto) {
-    return this.authService.resetPassword(body);
-  }
+  // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  // @ApiBody({ type: ResetPasswordDto })
+  // @Post('reset-password')
+  // async resetPassword(@Body() body: ResetPasswordDto) {
+  //   return this.authService.resetPassword(body);
+  // }
 }

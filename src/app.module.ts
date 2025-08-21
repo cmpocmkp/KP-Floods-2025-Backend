@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
-import { OtpModule } from './otp/otp.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 
@@ -26,7 +25,6 @@ import { HealthModule } from './health/health.module';
     }),
     HealthModule,
     AuthModule,
-    OtpModule,
     UsersModule,
     FileUploadModule,
   ],
