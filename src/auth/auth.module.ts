@@ -15,7 +15,7 @@ import { DocumentProcessingService } from './document-processing.service';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: 'asdllkasfdservdfdrrr12345678696983',
+        secret: configService.get('JWT_SECRET'),
         signOptions: {
           expiresIn: '3d',
         },

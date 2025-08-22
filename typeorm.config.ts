@@ -13,7 +13,7 @@ export default new DataSource({
   migrationsRun: true,
   migrationsTransactionMode: 'each',
   type: 'postgres',
-  url: 'postgresql://postgres:ISeAzMTIPpPFwLipzpXtdeJbdGKQBJCI@caboose.proxy.rlwy.net:58300/railway',
+  url: process.env.DATABASE_URL,
   entities: ['src/**/*.entity{.ts,.js}'],
   migrations: ['src/migrations/*{.ts,.js}'],
   ssl: {
