@@ -7,9 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { SignUpUserDto } from 'src/auth/dtos/sign-up.dto';
+import { SignUpUserDto } from './dtos/sign-up-user.dto';
 import * as bcrypt from 'bcrypt';
-import { GoogleLoginDto } from 'src/auth/dtos/google-log-in.dto';
 import { UserOnboardingDto } from './dtos/user-onboarding.dto';
 
 @Injectable()
@@ -39,10 +38,9 @@ export class UsersService {
     return user;
   }
 
-
-  async getUserByPhoneNumber(country_code: string, phone_no: string): Promise<User> {
+  async getUserByUserId(userId: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { country_code: country_code, phone_no: phone_no },
+      where: { user_id: userId },
     });
 
     return user;
@@ -65,36 +63,33 @@ export class UsersService {
   }
 
   async insertUser(createUserDto: SignUpUserDto): Promise<User> {
-    const { email, phone_no, password, ...rest } = createUserDto;
+    const { user_id, password, initial_password, ...rest } = createUserDto;
 
-
+    // Check if user_id already exists
+    const existingUser = await this.getUserByUserId(user_id);
+    if (existingUser) {
+      throw new ConflictException(`User with ID ${user_id} already exists`);
+    }
 
     // Hash password with bcrypt
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
+    
+    let hashedInitialPassword = null;
+    if (initial_password) {
+      hashedInitialPassword = await bcrypt.hash(initial_password, salt);
+    }
 
     // Create new user entity
     const user = this.userRepository.create({
       ...rest,
-      email,
-      phone_no,
-      is_disabled: false,
-      email_verified: true,
+      user_id,
       password: hashedPassword,
-    });
-
-    // Save the user and return
-    return await this.userRepository.save(user);
-  }
-
-  async insertGoogleUser(createUserDto: GoogleLoginDto): Promise<User> {
-    const { email, phone_no, ...rest } = createUserDto;
-
-    // Create new user entity
-    const user = this.userRepository.create({
-      ...rest,
-      email,
-      phone_no,
+      initial_password: hashedInitialPassword,
+      is_disabled: false,
+      is_deleted: false,
+      first_login: true,
+      data_id: createUserDto.data_id || 4,
     });
 
     // Save the user and return
@@ -106,19 +101,18 @@ export class UsersService {
       where: { id: user.userId },
       select: [
         'id',
-        'first_name',
-        'last_name',
+        'user_id',
+        'user_name',
         'email',
-        'country_code',
-        'phone_no',
-        'is_google',
-        'image',
-        'email_verified',
-        'city',
-        'state',
-        'country',
-        'dob',
-        'gender',
+        'description',
+        'jurisdiction',
+        'role',
+        'is_disabled',
+        'is_deleted',
+        'first_login',
+        'data_id',
+        'created_at',
+        'updated_at',
       ],
     });
   }
@@ -158,15 +152,25 @@ export class UsersService {
     }
   }
 
-  async markEmailAsVerified(userId): Promise<void> {
+  async activateUser(userId: number): Promise<void> {
     const user = await this.getUserById(userId);
 
     if (!user) {
       throw new NotFoundException(`User with id ${userId} does not exist.`);
     }
 
-    user.email_verified = true;
     user.is_disabled = false;
+    await this.userRepository.save(user);
+  }
+
+  async markFirstLoginComplete(userId: number): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} does not exist.`);
+    }
+
+    user.first_login = false;
     await this.userRepository.save(user);
   }
 }

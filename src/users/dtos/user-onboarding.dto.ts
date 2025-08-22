@@ -1,44 +1,23 @@
 import {
   IsOptional,
   IsString,
-  IsEnum,
-  IsDate,
-  IsDateString,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserOnboardingDto {
-  @ApiProperty({ description: 'City of the user', required: false })
+  @ApiProperty({ description: 'Description or bio of the user', required: false })
   @IsString()
   @IsOptional()
-  city?: string;
+  description?: string;
 
-  @ApiProperty({ description: 'State of the user', required: false })
+  @ApiProperty({ description: 'Jurisdiction of the user', required: false })
   @IsString()
   @IsOptional()
-  state?: string;
+  jurisdiction?: string;
 
-  @ApiProperty({ description: 'Country of the user', required: false })
-  @IsString()
+  @ApiProperty({ description: 'Mark if this is first login', required: false })
+  @IsBoolean()
   @IsOptional()
-  country?: string;
-
-  @ApiProperty({
-    description: 'Date of birth of the user',
-    required: false,
-    type: 'string',
-    format: 'date',
-  })
-  @IsDateString()
-  @IsOptional()
-  dob?: Date;
-
-  @ApiProperty({
-    description: 'Gender of the user',
-    enum: ['male', 'female', 'other'],
-    required: false,
-  })
-  @IsEnum(['male', 'female', 'other'])
-  @IsOptional()
-  gender?: string;
+  first_login?: boolean;
 }

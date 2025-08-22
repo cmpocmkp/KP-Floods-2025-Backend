@@ -5,12 +5,24 @@ export const databaseConfig = {
   imports: [ConfigModule],
   useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
     type: 'postgres',
-    url: 'postgresql://arsalandb_owner:phNsqJvPu9S6@ep-broad-rain-a5twuu00.us-east-2.aws.neon.tech/arsalandb?sslmode=require',
+    url: configService.get('DATABASE_URL'),
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: configService.get<boolean>('DB_SYNC', true), // Set to false in production
+    synchronize: false,
+    logging: true,
+    migrationsRun: true,
+    subscribers: [],
+    migrations: [__dirname + '/../migrations/*{.ts,.js}'],
     ssl: {
-      rejectUnauthorized: false, // Required for Neon SSL connections
+      rejectUnauthorized: false,
     },
+    connectTimeoutMS: 30000, // 30 seconds timeout
+    extra: {
+      connectionTimeoutMillis: 30000,
+      query_timeout: 30000,
+      statement_timeout: 30000
+    },
+    retryAttempts: 5,
+    retryDelay: 3000,
   }),
   inject: [ConfigService],
 };

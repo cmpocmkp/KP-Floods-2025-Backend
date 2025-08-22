@@ -1,22 +1,37 @@
 import {
   Body,
   Controller,
+  HttpException,
+  HttpStatus,
   Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { JWTAuthGuard } from './guards/jwt-auth-guard';
+import { ChangePasswordDto } from './dtos/change-password.dto';
 import { AuthService } from './auth.service';
+import { DocumentProcessingService } from './document-processing.service';
+import { multerConfig } from './config/multer.config';
 import { SignUpUserDto } from './dtos/sign-up.dto';
 import { GoogleLoginDto } from './dtos/google-log-in.dto';
-import { LoginDto } from './dtos/log-in.dto';
+import { LogInDto } from './dtos/log-in.dto';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(
+    private authService: AuthService,
+    private documentProcessingService: DocumentProcessingService,
+  ) { }
 
   /**
    * The purpose of this method is to log in user
@@ -25,16 +40,32 @@ export class AuthController {
    * @returns the auth access token
    */
   //@UseGuards(JWTAuthGuard)
-  // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  @ApiBody({ type: LoginDto })
+  @ApiBody({ type: LogInDto })
   @Post('log-in')
-  async login(@Body() body: LoginDto) {
+  async login(@Body() body: LogInDto) {
     const createAuth = await this.authService.validateUser(
-      body.email,
+      body.username,
       body.password,
     );
     return createAuth;
+  }
+
+  @Post('change-password')
+  @UseGuards(JWTAuthGuard)
+  @ApiBearerAuth(AuthorizationHeader)
+  @ApiBody({ type: ChangePasswordDto })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async changePassword(
+    @Req() req: Request,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = req['user'].userId;
+    return await this.authService.changePassword(
+      userId,
+      changePasswordDto.oldPassword,
+      changePasswordDto.newPassword,
+    );
   }
 
   // @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -71,4 +102,42 @@ export class AuthController {
   // async resetPassword(@Body() body: ResetPasswordDto) {
   //   return this.authService.resetPassword(body);
   // }
+
+  @Post('process-document')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', multerConfig))
+  @ApiConsumes('multipart/form-data')
+  async processDocument(@UploadedFile() file: Express.Multer.File) {
+    try {
+      if (!file) {
+        throw new Error('No file uploaded');
+      }
+
+      const result = await this.documentProcessingService.processDocument(file);
+      return {
+        status: true,
+        statusCode: 200,
+        message: 'Document processed successfully',
+        data: result
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }

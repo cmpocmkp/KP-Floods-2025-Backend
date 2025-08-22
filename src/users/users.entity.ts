@@ -11,29 +11,47 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100 })
-  first_name: string;
+  @Column({ length: 50, unique: true })
+  user_id: string;
 
-  @Column({ length: 100 })
-  last_name: string;
+  @Column({ length: 255 })
+  user_name: string;
 
-  @Column({ unique: true })
+  @Column({ length: 255, nullable: true })
   email: string;
 
-  @Column({ length: 10, nullable: true, default: null })
-  country_code: string;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
-  @Column({ length: 15, nullable: true, default: null })
-  phone_no: string;
+  @Column({ length: 100, nullable: true })
+  jurisdiction: string;
 
-  @Column({ length: 100, nullable: true, default: null })
-  password: string;
+  @Column({
+    type: 'enum',
+    enum: ['super_admin', 'admin', 'admin_staff'],
+  })
+  role: string;
 
   @Column({ default: false })
-  is_google: boolean;
+  is_disabled: boolean;
 
-  @Column({ nullable: true })
-  image: string;
+  @Column({ default: false })
+  is_deleted: boolean;
+
+  @Column({ default: false })
+  first_login: boolean;
+
+  @Column({ default: false })
+  email_verified: boolean;
+
+  @Column({ length: 255 })
+  password: string;
+
+  @Column({ length: 255, nullable: true })
+  initial_password: string;
+
+  @Column({ type: 'int', nullable: true })
+  created_by: number;
 
   @CreateDateColumn()
   created_at: Date;
@@ -41,39 +59,6 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @Column({ type: 'int', nullable: true, default: null })
-  created_by: number;
-
-  @Column({ type: 'int', nullable: true, default: null })
-  updated_by: number;
-
-  @Column({ default: true })
-  is_disabled: boolean;
-
-  @Column({ default: false })
-  is_deleted: boolean;
-
-  @Column({ default: false })
-  email_verified: boolean;
-
-  // New fields added
-  @Column({ length: 100, nullable: true, default: null })
-  city: string;
-
-  @Column({ length: 100, nullable: true, default: null })
-  state: string;
-
-  @Column({ length: 100, nullable: true, default: null })
-  country: string;
-
-  @Column({ type: 'date', nullable: true, default: null })
-  dob: Date;
-
-  @Column({
-    type: 'enum',
-    enum: ['male', 'female', 'other'],
-    nullable: true,
-    default: null,
-  })
-  gender: string;
+  @Column({ type: 'int', default: 4 })
+  data_id: number;
 }

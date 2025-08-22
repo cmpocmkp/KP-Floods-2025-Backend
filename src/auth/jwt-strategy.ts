@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (userExists) {
       return {
         userId: userExists.id,
-        username: userExists.first_name,
+        username: userExists.user_name,
         roles: 'user',
       };
     }
