@@ -1,6 +1,5 @@
 # Fair Ticket Backend Documentation
 
-
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
@@ -41,3 +40,25 @@ Explore detailed documentation in the following files:
 
 ```bash
 $ npm install
+```
+
+## Environment Variables
+
+The following environment variables are required to run the application:
+
+```env
+# Database
+DATABASE_URL=your_database_url
+
+# Server
+PORT=3000
+ALLOWED_CLIENTS=http://localhost:3000,http://localhost:3001
+
+# Authentication
+JWT_SECRET=your_jwt_secret
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
+```
+
+Make sure to create a `.env` file in the root directory with these variables before running the application.

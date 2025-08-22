@@ -13,7 +13,7 @@ import { databaseConfig } from './config/database.config';
     ConfigModule.forRoot({
       load: [() => ({
         openai: {
-          apiKey: '***REMOVED***'
+          apiKey: process.env.OPENAI_API_KEY,
         }
       })],
       isGlobal: true,
