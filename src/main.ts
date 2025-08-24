@@ -1,9 +1,9 @@
 import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { patchScheduler } from './scheduler/scheduler.patch';
 
 import {
   AuthorizationHeader,
@@ -13,6 +13,8 @@ import {
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   try {
+    // Apply scheduler patch before starting the application
+    patchScheduler();
     logger.log('Starting application...');
     
     const app = await NestFactory.create(AppModule, {
