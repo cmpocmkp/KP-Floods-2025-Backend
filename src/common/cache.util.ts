@@ -18,17 +18,16 @@ export function getCacheKey(path: string, params: Record<string, any>): string {
   return `${path}:${JSON.stringify(sortedParams)}`;
 }
 
-export function withCache<T>(
+export async function withCache<T>(
   key: string,
   fn: () => Promise<T>,
 ): Promise<T> {
-  const cached = apiCache.get<T>(key);
+  const cached = apiCache.get(key) as T | undefined;
   if (cached !== undefined) {
-    return Promise.resolve(cached);
+    return cached;
   }
 
-  return fn().then((result) => {
-    apiCache.set(key, result);
-    return result;
-  });
+  const result = await fn();
+  apiCache.set(key, result);
+  return result;
 }

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DistrictIncidentsReported } from '../../dmis/entities/district-incidents-reported.entity';
 import { LivestockLosses } from '../../floods/entities/livestock-losses.entity';
-import { DamageDistributionResponse } from '../interfaces/distribution.interface';
+import { DamageDistributionResponse, DamageDistributionBucket } from '../interfaces/distribution.interface';
 import { withCache, getCacheKey } from '../../common/cache.util';
 
 @Injectable()
@@ -54,7 +54,7 @@ export class DistributionService {
 
       const livestockResult = await livestockQuery.getRawOne();
 
-      const buckets = [
+      const buckets: DamageDistributionBucket[] = [
         { key: 'deaths', value: parseInt(incidentsResult.deaths) || 0 },
         { key: 'injured', value: parseInt(incidentsResult.injured) || 0 },
         {
@@ -65,7 +65,7 @@ export class DistributionService {
           key: 'livestock_lost',
           value: parseInt(livestockResult.livestock_lost) || 0,
         },
-      ] as const;
+      ];
 
       const total_incidents = buckets.reduce((sum, bucket) => sum + bucket.value, 0);
 
