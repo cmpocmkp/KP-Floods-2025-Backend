@@ -5,9 +5,9 @@
     "lib": ["ES2021"],
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",                      // Enable base URL for imports
+    "baseUrl": ".",
     "paths": {
-      "src/*": ["./src/*"]                // Map `src/` to `./src/`
+      "src/*": ["src/*"]
     },
     "strict": false,
     "skipLibCheck": true,

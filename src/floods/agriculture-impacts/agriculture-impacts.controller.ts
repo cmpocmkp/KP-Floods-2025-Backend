@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/co
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { AgricultureImpactsService } from './agriculture-impacts.service';
 import { AgricultureImpactsDto, AgricultureImpactsFilterDto } from '../dtos/agriculture-impacts.dto';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { JWTAuthGuard } from '../../auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from '../../app/swagger.constant';
 
 @ApiTags('Agriculture Impacts')
 @ApiBearerAuth(AuthorizationHeader)

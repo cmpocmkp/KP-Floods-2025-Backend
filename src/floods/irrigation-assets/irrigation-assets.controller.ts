@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/co
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { IrrigationAssetsService } from './irrigation-assets.service';
 import { IrrigationAssetsDto, IrrigationAssetsFilterDto } from '../dtos/irrigation-assets.dto';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { JWTAuthGuard } from '../../auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from '../../app/swagger.constant';
 
 @ApiTags('Irrigation Assets')
 @ApiBearerAuth(AuthorizationHeader)

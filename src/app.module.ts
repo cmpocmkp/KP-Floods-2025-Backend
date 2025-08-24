@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { FloodsModule } from './floods/floods.module';
 import { databaseConfig } from './config/database.config';
+import { DmisModule } from './dmis/dmis.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { databaseConfig } from './config/database.config';
     UsersModule,
     FileUploadModule,
     FloodsModule,
+    DmisModule,
   ],
 })
 export class AppModule { }

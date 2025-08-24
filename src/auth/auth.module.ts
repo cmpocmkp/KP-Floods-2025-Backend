@@ -6,8 +6,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt-strategy';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { DocumentProcessingService } from './document-processing.service';
+import { DmisModule } from '../dmis/dmis.module';
 @Module({
   imports: [
     UsersModule,
@@ -23,6 +24,7 @@ import { DocumentProcessingService } from './document-processing.service';
       inject: [ConfigService],
     }),
     ConfigModule,
+    DmisModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, DocumentProcessingService],

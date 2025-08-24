@@ -15,8 +15,8 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { JWTAuthGuard } from '../auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from '../app/swagger.constant';
 import { FileUploadService } from './file-upload.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 

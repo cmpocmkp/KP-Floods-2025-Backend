@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { AuthorizationHeader } from '../app/swagger.constant';
 import { JWTAuthGuard } from './guards/jwt-auth-guard';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { AuthService } from './auth.service';
@@ -24,6 +24,7 @@ import { GoogleLoginDto } from './dtos/google-log-in.dto';
 import { LogInDto } from './dtos/log-in.dto';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { DmisService } from '../dmis/dmis.service';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -31,6 +32,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private documentProcessingService: DocumentProcessingService,
+    private dmisService: DmisService,
   ) { }
 
   /**
@@ -139,6 +141,41 @@ export class AuthController {
           error: error.message,
         },
         HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Fetches all DMIS data from PDMA and stores it in the database
+   * This will replace all existing data with new data
+   */
+  @Post('fetch-dmis-data')
+  async fetchDmisData() {
+    try {
+      // Fetch all data in parallel for better performance
+      await Promise.all([
+        this.dmisService.fetchWarehouseStockAtHand(),
+        this.dmisService.fetchWarehouseItemIssued(),
+        this.dmisService.fetchWarehouseItemRequested(),
+        this.dmisService.fetchWarehouseStockByDivision(),
+        this.dmisService.fetchDivisionIncidentSummary(),
+        this.dmisService.fetchAllCamps(),
+        this.dmisService.fetchDistrictCasualtiesTrend(),
+        this.dmisService.fetchDistrictIncidentsReported()
+      ]);
+
+      return {
+        status: true,
+        statusCode: 200,
+        message: 'DMIS data fetched and stored successfully'
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: `Failed to fetch DMIS data: ${error.message}`,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

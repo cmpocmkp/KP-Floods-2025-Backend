@@ -10,8 +10,8 @@ import { UsersService } from './users.service';
 import { UserOnboardingDto } from './dtos/user-onboarding.dto';
 import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 import { Request } from 'express';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from '../app/swagger.constant';
+import { JWTAuthGuard } from '../auth/guards/jwt-auth-guard';
 
 @Controller('users')
 export class UsersController {

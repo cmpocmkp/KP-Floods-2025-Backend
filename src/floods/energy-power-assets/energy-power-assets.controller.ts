@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/co
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { EnergyPowerAssetsService } from './energy-power-assets.service';
 import { EnergyPowerAssetsDto, EnergyPowerAssetsFilterDto } from '../dtos/energy-power-assets.dto';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { AuthorizationHeader } from 'src/app/swagger.constant';
+import { JWTAuthGuard } from '../../auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from '../../app/swagger.constant';
 
 @ApiTags('Energy & Power Assets')
 @ApiBearerAuth(AuthorizationHeader)

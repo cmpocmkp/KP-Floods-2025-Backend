@@ -2,9 +2,8 @@ import { Controller, Get, Post, Put, Delete, Body, Query, Param, UseGuards } fro
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { AffectedDistrictCoordinatesService } from './affected-district-coordinates.service';
 import { AffectedDistrictCoordinatesDto, AffectedDistrictCoordinatesFilterDto } from '../dtos/affected-district-coordinates.dto';
-import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { AuthorizationHeader } from 'src/app/swagger.constant';
-
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 @ApiTags('District Coordinates')
 @ApiBearerAuth(AuthorizationHeader)
 @UseGuards(JWTAuthGuard)
