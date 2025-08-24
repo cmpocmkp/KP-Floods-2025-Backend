@@ -1,6 +1,7 @@
 import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './app/filters/http-exception.filter';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { patchScheduler } from './scheduler/scheduler.patch';
@@ -22,6 +23,22 @@ async function bootstrap() {
     });
 
     logger.log('Application created, configuring...');
+
+    // Enable global validation pipe
+    app.useGlobalPipes(new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: true },
+    }));
+
+    logger.log('Global validation pipe configured');
+
+    // Apply global exception filter
+    const httpExceptionFilter = new HttpExceptionFilter();
+    app.useGlobalFilters(httpExceptionFilter);
+
+    logger.log('Global exception filter configured');
 
     // Enable CORS with specific configuration
     app.enableCors({

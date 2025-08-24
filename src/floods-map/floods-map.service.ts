@@ -83,10 +83,9 @@ export class FloodsMapService {
   private async getLatestIncidentsPerDistrict(from: Date, to: Date) {
     return this.dataSource.query(`
       WITH latest_inc AS (
-        SELECT DISTINCT ON (district, report_date)
+        SELECT DISTINCT ON (district)
           district, report_date, total_deaths, total_injured, total_houses_damaged, total_other_damaged
         FROM dmis.district_incidents_reported
-        WHERE report_date BETWEEN $1 AND $2
         ORDER BY district, report_date DESC
       ),
       agg_inc AS (
@@ -99,8 +98,7 @@ export class FloodsMapService {
         FROM latest_inc
         GROUP BY lower(trim(district))
       )
-      SELECT * FROM agg_inc
-    `, [from.toISOString(), to.toISOString()]);
+      SELECT * FROM agg_inc`);
   }
 
   private async getSchoolDamages(from: Date, to: Date) {
@@ -109,7 +107,6 @@ export class FloodsMapService {
       .select('LOWER(TRIM(district))', 'district')
       .addSelect('COUNT(DISTINCT id)', 'schools_damaged')
       .from('floods.esed_school_damages', 'esd')
-      .where('report_date BETWEEN :from AND :to', { from, to })
       .groupBy('LOWER(TRIM(district))')
       .getRawMany();
   }
@@ -120,7 +117,6 @@ export class FloodsMapService {
       .select('LOWER(TRIM(district))', 'district')
       .addSelect('SUM(cattles_perished)', 'livestock_lost')
       .from('floods.livestock_losses', 'll')
-      .where('report_date BETWEEN :from AND :to', { from, to })
       .groupBy('LOWER(TRIM(district))')
       .getRawMany();
   }
@@ -133,18 +129,11 @@ export class FloodsMapService {
       .addSelect('SUM(COALESCE(bridges_damaged_count, 0))', 'bridges_damaged')
       .addSelect('SUM(COALESCE(culverts_damage_count, 0))', 'culverts_damaged')
       .from('floods.cnw_assets', 'cnw')
-      .where('report_date BETWEEN :from AND :to', { from, to })
       .groupBy('LOWER(TRIM(district))')
       .getRawMany();
   }
 
   async getDistrictsGeoJson(params: DateRangeDto): Promise<GeoJsonResponse> {
-    const cacheKey = `districts_geojson_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
     // Get coordinates
     const coordinates = await this.dataSource
       .createQueryBuilder()
@@ -154,11 +143,12 @@ export class FloodsMapService {
       .from('floods.affected_district_coordinates', 'coords')
       .getRawMany();
 
-    // Get metrics
-    const incidents = await this.getLatestIncidentsPerDistrict(from, to);
-    const schoolDamages = await this.getSchoolDamages(from, to);
-    const livestockLosses = await this.getLivestockLosses(from, to);
-    const cnwDamages = await this.getCnwDamages(from, to);
+    // Get metrics - passing dummy dates since we've removed date filtering
+    const dummyDate = new Date();
+    const incidents = await this.getLatestIncidentsPerDistrict(dummyDate, dummyDate);
+    const schoolDamages = await this.getSchoolDamages(dummyDate, dummyDate);
+    const livestockLosses = await this.getLivestockLosses(dummyDate, dummyDate);
+    const cnwDamages = await this.getCnwDamages(dummyDate, dummyDate);
 
     // Create feature collection
     const features: DistrictFeature[] = coordinates.map(coord => {
@@ -188,28 +178,21 @@ export class FloodsMapService {
       };
     });
 
-    const response: GeoJsonResponse = {
+    return {
       type: 'FeatureCollection',
       features
     };
-
-    this.cache.set(cacheKey, response);
-    return response;
   }
 
   async getChoroplethData(params: ChoroplethParams): Promise<ChoroplethData[]> {
-    const cacheKey = `choropleth_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
+    const dummyDate = new Date();
     let result: any[];
 
     switch (params.metric) {
       case 'deaths':
       case 'injured':
       case 'houses':
-        const incidents = await this.getLatestIncidentsPerDistrict(from, to);
+        const incidents = await this.getLatestIncidentsPerDistrict(dummyDate, dummyDate);
         result = incidents.map(i => ({
           district: i.district,
           value: i[params.metric === 'houses' ? 'houses_damaged' : params.metric] || 0
@@ -217,7 +200,7 @@ export class FloodsMapService {
         break;
 
       case 'livestock':
-        const livestock = await this.getLivestockLosses(from, to);
+        const livestock = await this.getLivestockLosses(dummyDate, dummyDate);
         result = livestock.map(l => ({
           district: l.district,
           value: l.livestock_lost || 0
@@ -228,7 +211,6 @@ export class FloodsMapService {
         throw new BadRequestException('Invalid metric');
     }
 
-    this.cache.set(cacheKey, result);
     return result;
   }
 
@@ -272,13 +254,8 @@ export class FloodsMapService {
   }
 
   async getRecentIncidents(params: RecentIncidentsParams): Promise<IncidentRecord[]> {
-    const cacheKey = `recent_incidents_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
     const limit = params.limit || 20;
-    const districtFilter = params.district ? `AND LOWER(TRIM(district)) = LOWER(TRIM($3))` : '';
+    const districtFilter = params.district ? `AND LOWER(TRIM(district)) = LOWER(TRIM($1))` : '';
 
     const result = await this.dataSource.query(`
       SELECT
@@ -287,22 +264,16 @@ export class FloodsMapService {
         total_injured as injured,
         total_houses_damaged as houses_damaged
       FROM dmis.district_incidents_reported
-      WHERE report_date BETWEEN $1 AND $2
+      WHERE 1=1
       ${districtFilter}
       ORDER BY report_date DESC
-      LIMIT $4
-    `, [from.toISOString(), to.toISOString(), params.district, limit]);
+      LIMIT $${districtFilter ? '2' : '1'}
+    `, districtFilter ? [params.district, limit] : [limit]);
 
-    this.cache.set(cacheKey, result);
     return result;
   }
 
   async getDistrictIncidents(district: string, params: DateRangeDto): Promise<IncidentRecord[]> {
-    const cacheKey = `district_incidents_${district}_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
     const normalizedDistrict = this.normalizeDistrict(district);
 
     const result = await this.dataSource.query(`
@@ -312,22 +283,14 @@ export class FloodsMapService {
         total_injured as injured,
         total_houses_damaged as houses_damaged
       FROM dmis.district_incidents_reported
-      WHERE report_date BETWEEN $1 AND $2
-        AND LOWER(TRIM(district)) = $3
+      WHERE LOWER(TRIM(district)) = $1
       ORDER BY report_date DESC
-    `, [from.toISOString(), to.toISOString(), normalizedDistrict]);
+    `, [normalizedDistrict]);
 
-    this.cache.set(cacheKey, result);
     return result;
   }
 
   async getInfrastructureStatus(params: DateRangeDto): Promise<InfrastructureStatus> {
-    const cacheKey = `infrastructure_status_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
     const result = await this.dataSource.query(`
       SELECT
         SUM(CASE WHEN restoration_status = 'fully_restored' THEN COALESCE(road_damage_length_km, 0) ELSE 0 END) as roads_fully,
@@ -340,10 +303,9 @@ export class FloodsMapService {
         SUM(CASE WHEN restoration_status = 'partially_restored' THEN COALESCE(culverts_damage_count, 0) ELSE 0 END) as culverts_partial,
         SUM(CASE WHEN restoration_status = 'not_restored' THEN COALESCE(culverts_damage_count, 0) ELSE 0 END) as culverts_none
       FROM floods.cnw_assets
-      WHERE report_date BETWEEN $1 AND $2
-    `, [from.toISOString(), to.toISOString()]);
+    `);
 
-    const response: InfrastructureStatus = {
+    return {
       roads_km: {
         fully_restored: result[0].roads_fully || 0,
         partially_restored: result[0].roads_partial || 0,
@@ -360,19 +322,10 @@ export class FloodsMapService {
         not_restored: result[0].culverts_none || 0,
       },
     };
-
-    this.cache.set(cacheKey, response);
-    return response;
   }
 
   async getInfrastructureByDistrict(params: DateRangeDto): Promise<DistrictInfrastructure[]> {
-    const cacheKey = `infrastructure_by_district_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
-    const result = await this.dataSource.query(`
+    return this.dataSource.query(`
       SELECT
         LOWER(TRIM(district)) as district,
         SUM(COALESCE(road_damage_length_km, 0)) as roads_km,
@@ -384,55 +337,31 @@ export class FloodsMapService {
           0
         ) as restoration_progress
       FROM floods.cnw_assets
-      WHERE report_date BETWEEN $1 AND $2
       GROUP BY LOWER(TRIM(district))
       ORDER BY district
-    `, [from.toISOString(), to.toISOString()]);
-
-    this.cache.set(cacheKey, result);
-    return result;
+    `);
   }
 
   async getWarehouseStockByDivision(params: DateRangeDto): Promise<WarehouseStockByDivision[]> {
-    const cacheKey = `warehouse_stock_by_division_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
-    const result = await this.dataSource.query(`
+    return this.dataSource.query(`
       SELECT
         division,
         SUM(stock_value) as stock_value
       FROM dmis.warehouse_stock_by_division
-      WHERE report_date BETWEEN $1 AND $2
       GROUP BY division
       ORDER BY division
-    `, [from.toISOString(), to.toISOString()]);
-
-    this.cache.set(cacheKey, result);
-    return result;
+    `);
   }
 
   async getWarehouseItemsIssuedDaily(params: DateRangeDto): Promise<WarehouseItemsDaily[]> {
-    const cacheKey = `warehouse_items_issued_daily_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
-    const result = await this.dataSource.query(`
+    return this.dataSource.query(`
       SELECT
         report_date as date,
         COUNT(*) as items_issued
       FROM dmis.warehouse_item_issued
-      WHERE report_date BETWEEN $1 AND $2
       GROUP BY report_date
       ORDER BY report_date
-    `, [from.toISOString(), to.toISOString()]);
-
-    this.cache.set(cacheKey, result);
-    return result;
+    `);
   }
 
   async getWarehouseTopItems(limit: number = 20): Promise<WarehouseTopItem[]> {
@@ -470,12 +399,6 @@ export class FloodsMapService {
   }
 
   async getCampsSummary(params: DateRangeDto): Promise<CampsSummary> {
-    const cacheKey = `camps_summary_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
     const result = await this.dataSource.query(`
       SELECT
         COUNT(DISTINCT id) as total_camps,
@@ -486,28 +409,18 @@ export class FloodsMapService {
           0
         ) as capacity_utilization
       FROM dmis.camps_snapshot
-      WHERE report_date BETWEEN $1 AND $2
-    `, [from.toISOString(), to.toISOString()]);
+    `);
 
-    const response: CampsSummary = {
+    return {
       total_camps: result[0].total_camps || 0,
       districts_with_camps: result[0].districts_with_camps || 0,
       total_occupants: result[0].total_occupants || 0,
       capacity_utilization: result[0].capacity_utilization || 0,
     };
-
-    this.cache.set(cacheKey, response);
-    return response;
   }
 
   async getCampsByDistrict(params: DateRangeDto): Promise<CampsByDistrict[]> {
-    const cacheKey = `camps_by_district_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
-    const result = await this.dataSource.query(`
+    return this.dataSource.query(`
       SELECT
         district,
         COUNT(DISTINCT id) as camps_count,
@@ -518,22 +431,12 @@ export class FloodsMapService {
           0
         ) as utilization
       FROM dmis.camps_snapshot
-      WHERE report_date BETWEEN $1 AND $2
       GROUP BY district
       ORDER BY district
-    `, [from.toISOString(), to.toISOString()]);
-
-    this.cache.set(cacheKey, result);
-    return result;
+    `);
   }
 
   async getCampsFacilities(params: DateRangeDto): Promise<CampsFacilities> {
-    const cacheKey = `camps_facilities_${JSON.stringify(params)}`;
-    const cached = this.cache.get(cacheKey);
-    if (cached) return cached;
-
-    const { from, to } = this.getDateRange(params);
-
     const result = await this.dataSource.query(`
       SELECT
         COALESCE(AVG(CASE WHEN has_medical_facilities THEN 1 ELSE 0 END), 0) as medical,
@@ -542,19 +445,15 @@ export class FloodsMapService {
         COALESCE(AVG(CASE WHEN has_electricity THEN 1 ELSE 0 END), 0) as electricity,
         COALESCE(AVG(CASE WHEN has_shelter THEN 1 ELSE 0 END), 0) as shelter
       FROM dmis.camps_snapshot
-      WHERE report_date BETWEEN $1 AND $2
-    `, [from.toISOString(), to.toISOString()]);
+    `);
 
-    const response: CampsFacilities = {
+    return {
       medical: result[0].medical || 0,
       water: result[0].water || 0,
       sanitation: result[0].sanitation || 0,
       electricity: result[0].electricity || 0,
       shelter: result[0].shelter || 0,
     };
-
-    this.cache.set(cacheKey, response);
-    return response;
   }
 
   // Stub implementations for compensation endpoints
