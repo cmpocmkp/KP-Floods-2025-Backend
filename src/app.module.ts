@@ -9,6 +9,7 @@ import { FloodsModule } from './floods/floods.module';
 import { databaseConfig } from './config/database.config';
 import { DmisModule } from './dmis/dmis.module';
 import { FloodsMapModule } from './floods-map/floods-map.module';
+import { ApiModule } from './api/api.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { FloodsMapModule } from './floods-map/floods-map.module';
     FloodsModule,
     DmisModule,
     FloodsMapModule,
+    ApiModule,
   ],
 })
 export class AppModule { }
