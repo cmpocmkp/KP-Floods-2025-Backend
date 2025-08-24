@@ -49,6 +49,7 @@
     "class-validator": "^0.14.1",
     "docx": "^9.5.1",
     "iconv-lite": "^0.7.0",
+    "lru-cache": "^10.2.0",
     "mammoth": "^1.10.0",
     "multer": "^2.0.2",
     "nest-commander": "^3.19.0",

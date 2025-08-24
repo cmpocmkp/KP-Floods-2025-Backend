@@ -21,18 +21,18 @@ import {
   CompensationDaily,
   CompensationByDistrict,
 } from './interfaces/additional-endpoints.interface';
-import * as LRU from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 @Injectable()
 export class FloodsMapService {
-  private cache: LRU<string, any>;
+  private cache: LRUCache<string, any>;
 
   constructor(
     @InjectDataSource()
     private dataSource: DataSource,
   ) {
     // Initialize LRU cache with 60s TTL
-    this.cache = new LRU({
+    this.cache = new LRUCache({
       max: 500, // Store max 500 items
       ttl: 1000 * 60, // 60 seconds
     });
