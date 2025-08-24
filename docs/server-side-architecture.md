@@ -1,4 +1,4 @@
-# Fair Ticket Server-Side Architecture
+# Floods 2025 Server-Side Architecture
 
 ## Folder Structure
 
@@ -26,57 +26,58 @@ A robust folder structure addresses these issues and provides key benefits:
 A typical Node.js or NestJS project often begins with the following structure:
 
 /src
-  /controllers
-  /services
-  /modules
-  /dtos
-  /entities
-  /utils
+/controllers
+/services
+/modules
+/dtos
+/entities
+/utils
 
 While this structure is sufficient for small applications, it does not scale well as the application grows in size or complexity. It can lead to tightly coupled modules and hinder maintainability.
 
 ## Scalable Folder Structure for Node.js/NestJS
+
 To build enterprise-grade applications, it’s essential to adopt a modular and feature-based structure. Each feature or domain should be isolated into its own module, with strict boundaries and a clear API for interaction. This approach ensures scalability and maintainability.
 
 /src
-  /core                # Core functionalities shared across the application
-    /exceptions        # Custom exceptions
-    /filters           # Global filters (e.g., HTTP exceptions)
-    /interceptors      # Custom interceptors
-    /middlewares       # Global middlewares
-    /decorators        # Custom decorators
-    /pipes             # Global pipes
-  /modules             # Feature-specific modules
-    /users             # User module (example)
-      /controllers     # Controllers for this module
-      /services        # Services for this module
-      /dtos            # DTOs (Data Transfer Objects) for this module
-      /entities        # Entities or schemas for this module
-      /interfaces      # Interfaces for this module
-      /tests           # Module-specific tests
-    /auth              # Authentication module (example)
-      /controllers
-      /services
-      /guards          # Guards specific to this module
-      /strategies      # Passport strategies (e.g., JWT, local)
-      /dtos
-      /entities
-      /interfaces
-  /shared              # Shared resources (used across modules)
-    /dtos              # Shared DTOs
-    /entities          # Shared entities or schemas
-    /services          # Shared services (e.g., logging, notifications)
-    /interfaces        # Shared interfaces
-    /constants         # Shared constants
-    /utils             # Shared utility functions
-  /config              # Configuration files
-    /database.ts       # Database configuration
-    /app.config.ts     # Application-wide configuration
-  /migrations          # Database migrations
-  /seeds               # Database seeding scripts
-  /tests               # Global tests
+/core # Core functionalities shared across the application
+/exceptions # Custom exceptions
+/filters # Global filters (e.g., HTTP exceptions)
+/interceptors # Custom interceptors
+/middlewares # Global middlewares
+/decorators # Custom decorators
+/pipes # Global pipes
+/modules # Feature-specific modules
+/users # User module (example)
+/controllers # Controllers for this module
+/services # Services for this module
+/dtos # DTOs (Data Transfer Objects) for this module
+/entities # Entities or schemas for this module
+/interfaces # Interfaces for this module
+/tests # Module-specific tests
+/auth # Authentication module (example)
+/controllers
+/services
+/guards # Guards specific to this module
+/strategies # Passport strategies (e.g., JWT, local)
+/dtos
+/entities
+/interfaces
+/shared # Shared resources (used across modules)
+/dtos # Shared DTOs
+/entities # Shared entities or schemas
+/services # Shared services (e.g., logging, notifications)
+/interfaces # Shared interfaces
+/constants # Shared constants
+/utils # Shared utility functions
+/config # Configuration files
+/database.ts # Database configuration
+/app.config.ts # Application-wide configuration
+/migrations # Database migrations
+/seeds # Database seeding scripts
+/tests # Global tests
 
-## Guidelines for Fair Ticket Application
+## Guidelines for Floods 2025 Application
 
 ## Rule #1: Organize by Feature
 
@@ -85,24 +86,22 @@ Instead of organizing the application by roles (e.g., controllers, services), or
 ## Old Structure (By Role):
 
 /controllers
-  └── users.controller.ts
+└── users.controller.ts
 /services
-  └── users.service.ts
+└── users.service.ts
 /entities
-  └── user.entity.ts
-
+└── user.entity.ts
 
 ## Improved Structure (By Feature):
 
 /modules
-  └── /users
-      ├── /controllers
-      │     └── users.controller.ts
-      ├── /services
-      │     └── users.service.ts
-      └── /entities
-            └── user.entity.ts
-
+└── /users
+├── /controllers
+│ └── users.controller.ts
+├── /services
+│ └── users.service.ts
+└── /entities
+└── user.entity.ts
 
 This approach ensures that everything related to a feature is grouped together, reducing navigation overhead and improving maintainability.
 

@@ -23,9 +23,9 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Fair-Ticket-Backend-Service API Platform')
-    .setDescription('The Fair Ticket API documentation')
-    .addTag('fair-ticket-backend-service')
+    .setTitle('Floods 2025 Backend-Service API Platform')
+    .setDescription('The Floods 2025 API documentation')
+    .addTag('Floods 2025 Backend-service')
     .setVersion('1.0')
     .addBearerAuth(
       AuthorizationHeaderSchema,

@@ -8,6 +8,9 @@ import { IrrigationAssetsModule } from './irrigation-assets/irrigation-assets.mo
 import { HousingImpactsModule } from './housing-impacts/housing-impacts.module';
 import { AffectedDistrictCoordinatesModule } from './affected-district-coordinates/affected-district-coordinates.module';
 import { FloodsMigrationModule } from '../floods-migration/floods-migration.module';
+import { EsedSchoolDamagesModule } from './esed-school-damages/esed-school-damages.module';
+import { LocalGovernmentAssetsModule } from './local-government-assets/local-government-assets.module';
+import { PheAssetsModule } from './phe-assets/phe-assets.module';
 
 @Module({
   imports: [
@@ -20,6 +23,9 @@ import { FloodsMigrationModule } from '../floods-migration/floods-migration.modu
     IrrigationAssetsModule,
     HousingImpactsModule,
     AffectedDistrictCoordinatesModule,
+    EsedSchoolDamagesModule,
+    LocalGovernmentAssetsModule,
+    PheAssetsModule,
   ],
   exports: [
     LivestockLossesModule,
@@ -30,6 +36,9 @@ import { FloodsMigrationModule } from '../floods-migration/floods-migration.modu
     IrrigationAssetsModule,
     HousingImpactsModule,
     AffectedDistrictCoordinatesModule,
+    EsedSchoolDamagesModule,
+    LocalGovernmentAssetsModule,
+    PheAssetsModule,
   ],
 })
 export class FloodsModule {}

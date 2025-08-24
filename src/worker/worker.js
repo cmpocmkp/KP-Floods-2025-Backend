@@ -4,7 +4,7 @@ export default {
       const url = new URL(request.url);
 
       // Define your backend service base URL
-      const backendBaseUrl = 'https://fair-ticket-backend-service.developer-9ce.workers.dev';
+      const backendBaseUrl = 'https://Floods 2025 Backend-service.developer-9ce.workers.dev';
 
       // Construct the full backend URL
       const backendUrl = `${backendBaseUrl}${url.pathname}${url.search}`;
