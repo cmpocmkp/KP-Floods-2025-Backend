@@ -1,9 +1,13 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { EsedSchoolDamagesService } from './esed-school-damages.service';
 import { FindEsedDto } from '../dtos/query-params.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('ES&ED School Damages')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('api/esed')
 export class EsedSchoolDamagesController {
   constructor(private readonly service: EsedSchoolDamagesService) {}

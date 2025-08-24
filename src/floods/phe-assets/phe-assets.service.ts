@@ -43,10 +43,14 @@ export class PheAssetsService {
   async findAll(dto: FindPheDto) {
     const query = this.buildListQuery(dto);
     
+    // Ensure page and pageSize are numbers with defaults
+    const page = dto.page ? Number(dto.page) : 1;
+    const pageSize = dto.pageSize ? Number(dto.pageSize) : 50;
+    
     const [data, total] = await Promise.all([
       query
-        .skip((dto.page - 1) * dto.pageSize)
-        .take(dto.pageSize)
+        .skip((page - 1) * pageSize)
+        .take(pageSize)
         .orderBy('phe.report_date', 'DESC')
         .addOrderBy('phe.district', 'ASC')
         .getMany(),
@@ -55,8 +59,8 @@ export class PheAssetsService {
 
     return {
       data,
-      page: dto.page,
-      pageSize: dto.pageSize,
+      page,
+      pageSize,
       total
     };
   }

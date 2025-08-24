@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { CnwAssetsService } from './cnw-assets.service';
 import { CnwAssetsDto, CnwAssetsFilterDto } from '../dtos/cnw-assets.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('C&W Assets')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('floods/cnw-assets')
 export class CnwAssetsController {
   constructor(private readonly cnwAssetsService: CnwAssetsService) {}

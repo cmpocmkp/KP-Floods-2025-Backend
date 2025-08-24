@@ -6,18 +6,24 @@ import {
   HttpException,
   HttpStatus,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiConsumes,
   ApiTags,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 import { FileUploadService } from './file-upload.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('file-upload')
 @ApiTags('file-upload')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 export class FileUploadController {
   constructor(private fileUploadService: FileUploadService) { }
 

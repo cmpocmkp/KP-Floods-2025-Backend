@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { LivestockLossesService } from './livestock-losses.service';
 import { LivestockLossesDto, LivestockLossesFilterDto } from '../dtos/livestock-losses.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('Livestock Losses')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('floods/livestock-losses')
 export class LivestockLossesController {
   constructor(private readonly livestockLossesService: LivestockLossesService) {}

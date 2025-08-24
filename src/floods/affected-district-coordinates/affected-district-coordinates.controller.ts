@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Put, Delete, Body, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { AffectedDistrictCoordinatesService } from './affected-district-coordinates.service';
 import { AffectedDistrictCoordinatesDto, AffectedDistrictCoordinatesFilterDto } from '../dtos/affected-district-coordinates.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('District Coordinates')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('floods/district-coordinates')
 export class AffectedDistrictCoordinatesController {
   constructor(private readonly coordinatesService: AffectedDistrictCoordinatesService) {}

@@ -104,6 +104,8 @@ export class AuthController {
   // }
 
   @Post('process-document')
+  @UseGuards(JWTAuthGuard)
+  @ApiBearerAuth(AuthorizationHeader)
   @ApiBody({
     schema: {
       type: 'object',

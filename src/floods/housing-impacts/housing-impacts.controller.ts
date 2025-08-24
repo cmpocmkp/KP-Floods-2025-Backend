@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { HousingImpactsService } from './housing-impacts.service';
 import { HousingImpactsDto, HousingImpactsFilterDto } from '../dtos/housing-impacts.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('Housing Impacts')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('floods/housing-impacts')
 export class HousingImpactsController {
   constructor(private readonly housingImpactsService: HousingImpactsService) {}

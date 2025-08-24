@@ -1,9 +1,13 @@
-import { Controller, Get, Post, Body, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { EnergyPowerAssetsService } from './energy-power-assets.service';
 import { EnergyPowerAssetsDto, EnergyPowerAssetsFilterDto } from '../dtos/energy-power-assets.dto';
+import { JWTAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { AuthorizationHeader } from 'src/app/swagger.constant';
 
 @ApiTags('Energy & Power Assets')
+@ApiBearerAuth(AuthorizationHeader)
+@UseGuards(JWTAuthGuard)
 @Controller('floods/energy-power-assets')
 export class EnergyPowerAssetsController {
   constructor(private readonly energyPowerAssetsService: EnergyPowerAssetsService) {}
