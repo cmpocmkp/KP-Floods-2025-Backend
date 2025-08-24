@@ -210,3 +210,26 @@ export class CoordinatesResponse {
   @ApiProperty({ example: 71.5432 })
   longitude: number;
 }
+
+export class TopoJsonResponse {
+  @ApiProperty({ example: 'Topology' })
+  type: string;
+
+  @ApiProperty({
+    example: {
+      districts: {
+        type: 'GeometryCollection',
+        geometries: []
+      }
+    }
+  })
+  objects: {
+    districts: {
+      type: string;
+      geometries: any[];
+    };
+  };
+
+  @ApiProperty({ example: [] })
+  arcs: any[];
+}

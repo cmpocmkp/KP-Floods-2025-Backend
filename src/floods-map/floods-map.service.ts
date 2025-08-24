@@ -3,7 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { DateRangeDto } from './dtos/date-range.dto';
 import { TrendParamsDto, TrendMetric } from './dtos/trend-params.dto';
-import { GeoJsonResponse, OverviewResponse, TrendResponse, DivisionSummaryResponse, DistrictSummaryResponse, TrendPoint } from './interfaces/gis.interface';
+import { GeoJsonResponse, OverviewResponse, TrendResponse, DivisionSummaryResponse, DistrictSummaryResponse, TrendPoint, DistrictFeature } from './interfaces/gis.interface';
 import { ChoroplethData, Coordinates } from './interfaces/additional.interface';
 import { ChoroplethParams, ChoroplethMetric } from './dtos/choropleth-params.dto';
 import { RecentIncidentsParams } from './dtos/incidents-params.dto';
@@ -138,7 +138,138 @@ export class FloodsMapService {
       .getRawMany();
   }
 
-  // ... [previous endpoint methods remain the same]
+  async getDistrictsGeoJson(params: DateRangeDto): Promise<GeoJsonResponse> {
+    const cacheKey = `districts_geojson_${JSON.stringify(params)}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const { from, to } = this.getDateRange(params);
+
+    // Get coordinates
+    const coordinates = await this.dataSource
+      .createQueryBuilder()
+      .select('district', 'district')
+      .addSelect('latitude', 'latitude')
+      .addSelect('longitude', 'longitude')
+      .from('floods.affected_district_coordinates', 'coords')
+      .getRawMany();
+
+    // Get metrics
+    const incidents = await this.getLatestIncidentsPerDistrict(from, to);
+    const schoolDamages = await this.getSchoolDamages(from, to);
+    const livestockLosses = await this.getLivestockLosses(from, to);
+    const cnwDamages = await this.getCnwDamages(from, to);
+
+    // Create feature collection
+    const features: DistrictFeature[] = coordinates.map(coord => {
+      const incident = incidents.find(i => this.normalizeDistrict(i.district) === this.normalizeDistrict(coord.district)) || {};
+      const schools = schoolDamages.find(s => this.normalizeDistrict(s.district) === this.normalizeDistrict(coord.district)) || {};
+      const livestock = livestockLosses.find(l => this.normalizeDistrict(l.district) === this.normalizeDistrict(coord.district)) || {};
+      const cnw = cnwDamages.find(c => this.normalizeDistrict(c.district) === this.normalizeDistrict(coord.district)) || {};
+
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [coord.longitude, coord.latitude]
+        },
+        properties: {
+          district: coord.district,
+          latest_report_date: incident.latest_report_date || null,
+          deaths: incident.deaths || 0,
+          injured: incident.injured || 0,
+          houses_damaged: incident.houses_damaged || 0,
+          schools_damaged: schools.schools_damaged || 0,
+          livestock_lost: livestock.livestock_lost || 0,
+          roads_damaged_km: cnw.roads_damaged_km || 0,
+          bridges_damaged: cnw.bridges_damaged || 0,
+          culverts_damaged: cnw.culverts_damaged || 0
+        }
+      };
+    });
+
+    const response: GeoJsonResponse = {
+      type: 'FeatureCollection',
+      features
+    };
+
+    this.cache.set(cacheKey, response);
+    return response;
+  }
+
+  async getChoroplethData(params: ChoroplethParams): Promise<ChoroplethData[]> {
+    const cacheKey = `choropleth_${JSON.stringify(params)}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const { from, to } = this.getDateRange(params);
+    let result: any[];
+
+    switch (params.metric) {
+      case 'deaths':
+      case 'injured':
+      case 'houses':
+        const incidents = await this.getLatestIncidentsPerDistrict(from, to);
+        result = incidents.map(i => ({
+          district: i.district,
+          value: i[params.metric === 'houses' ? 'houses_damaged' : params.metric] || 0
+        }));
+        break;
+
+      case 'livestock':
+        const livestock = await this.getLivestockLosses(from, to);
+        result = livestock.map(l => ({
+          district: l.district,
+          value: l.livestock_lost || 0
+        }));
+        break;
+
+      default:
+        throw new BadRequestException('Invalid metric');
+    }
+
+    this.cache.set(cacheKey, result);
+    return result;
+  }
+
+  async getDistrictCoordinates(): Promise<Coordinates[]> {
+    const cacheKey = 'district_coordinates';
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const result = await this.dataSource
+      .createQueryBuilder()
+      .select('district', 'district')
+      .addSelect('latitude', 'latitude')
+      .addSelect('longitude', 'longitude')
+      .from('floods.affected_district_coordinates', 'coords')
+      .getRawMany();
+
+    this.cache.set(cacheKey, result);
+    return result;
+  }
+
+  async getDistrictsTopoJson(): Promise<any> {
+    const cacheKey = 'districts_topojson';
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    // This would typically be a static TopoJSON file served from the filesystem
+    // For now, we'll return a simplified version with just the district boundaries
+    const result = {
+      type: "Topology",
+      objects: {
+        districts: {
+          type: "GeometryCollection",
+          geometries: []
+        }
+      },
+      arcs: []
+    };
+
+    this.cache.set(cacheKey, result);
+    return result;
+  }
 
   async getRecentIncidents(params: RecentIncidentsParams): Promise<IncidentRecord[]> {
     const cacheKey = `recent_incidents_${JSON.stringify(params)}`;

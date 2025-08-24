@@ -6,6 +6,7 @@ import { TrendParamsDto } from './dtos/trend-params.dto';
 import { ChoroplethParams } from './dtos/choropleth-params.dto';
 import { RecentIncidentsParams } from './dtos/incidents-params.dto';
 import { ChoroplethData, Coordinates } from './interfaces/additional.interface';
+import { GeoJsonResponse } from './interfaces/gis.interface';
 import {
   IncidentRecord,
   InfrastructureStatus,
@@ -28,7 +29,65 @@ import * as AdditionalResponses from './swagger/additional-responses';
 export class FloodsMapController {
   constructor(private readonly floodsMapService: FloodsMapService) {}
 
-  // ... [previous endpoints remain the same]
+  @Get('gis/districts')
+  @ApiOperation({
+    summary: 'Get district points with metrics',
+    description: 'Returns GeoJSON FeatureCollection of district points with metrics.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'GeoJSON FeatureCollection of district points',
+    type: ResponseTypes.GeoJsonResponse,
+  })
+  async getDistrictsGeoJson(
+    @Query(new ValidationPipe({ transform: true })) params: DateRangeDto,
+  ): Promise<GeoJsonResponse> {
+    return this.floodsMapService.getDistrictsGeoJson(params);
+  }
+
+  @Get('geo/choropleth')
+  @ApiOperation({
+    summary: 'Get choropleth data',
+    description: 'Returns district values for choropleth visualization.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of district values',
+    type: [ResponseTypes.ChoroplethDataResponse],
+  })
+  async getChoroplethData(
+    @Query(new ValidationPipe({ transform: true })) params: ChoroplethParams,
+  ): Promise<ChoroplethData[]> {
+    return this.floodsMapService.getChoroplethData(params);
+  }
+
+  @Get('coordinates')
+  @ApiOperation({
+    summary: 'Get district coordinates',
+    description: 'Returns array of district coordinates.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of district coordinates',
+    type: [ResponseTypes.CoordinatesResponse],
+  })
+  async getDistrictCoordinates(): Promise<Coordinates[]> {
+    return this.floodsMapService.getDistrictCoordinates();
+  }
+
+  @Get('geo/districts-topojson')
+  @ApiOperation({
+    summary: 'Get districts TopoJSON',
+    description: 'Returns KP districts TopoJSON for polygon map.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Districts TopoJSON data',
+    type: ResponseTypes.TopoJsonResponse,
+  })
+  async getDistrictsTopoJson(): Promise<any> {
+    return this.floodsMapService.getDistrictsTopoJson();
+  }
 
   @Get('incidents/recent')
   @ApiOperation({
