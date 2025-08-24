@@ -36,13 +36,14 @@ export class SummariesService {
       // Validate date range
       if (new Date(from) > new Date(to)) {
         throw new Error('date_from cannot be later than date_to');
+      }
 
-    const cacheKey = getCacheKey('/api/summaries/divisions', {
-      date_from: from,
-      date_to: to,
-    });
+      const cacheKey = getCacheKey('/api/summaries/divisions', {
+        date_from: from,
+        date_to: to,
+      });
 
-    return withCache(cacheKey, async () => {
+      return withCache(cacheKey, async () => {
       console.log('Starting to fetch division summary data...');
       console.log('Date range:', { from, to });
 
