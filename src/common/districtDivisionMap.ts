@@ -51,6 +51,14 @@ export const districtToDivisionMap: Record<string, string> = {
 };
 
 export function getDistrictDivision(district: string): string {
+  if (!district) {
+    console.warn('Empty district name provided');
+    return 'Unknown';
+  }
   const normalizedDistrict = district.toLowerCase().trim();
-  return districtToDivisionMap[normalizedDistrict] || 'Unknown';
+  const division = districtToDivisionMap[normalizedDistrict];
+  if (!division) {
+    console.warn(`Unknown district: ${district}`);
+  }
+  return division || 'Unknown';
 }

@@ -23,14 +23,19 @@ export class SummariesService {
     dateFrom?: string,
     dateTo?: string,
   ): Promise<DivisionSummaryResponse> {
-    const today = new Date();
-    const defaultDateTo = today.toISOString().split('T')[0];
-    const defaultDateFrom = new Date(today.setDate(today.getDate() - 7))
-      .toISOString()
-      .split('T')[0];
+    try {
+      const today = new Date();
+      const defaultDateTo = today.toISOString().split('T')[0];
+      const defaultDateFrom = new Date(today.setDate(today.getDate() - 7))
+        .toISOString()
+        .split('T')[0];
 
-    const from = dateFrom || defaultDateFrom;
-    const to = dateTo || defaultDateTo;
+      const from = dateFrom || defaultDateFrom;
+      const to = dateTo || defaultDateTo;
+
+      // Validate date range
+      if (new Date(from) > new Date(to)) {
+        throw new Error('date_from cannot be later than date_to');
 
     const cacheKey = getCacheKey('/api/summaries/divisions', {
       date_from: from,
@@ -38,6 +43,9 @@ export class SummariesService {
     });
 
     return withCache(cacheKey, async () => {
+      console.log('Starting to fetch division summary data...');
+      console.log('Date range:', { from, to });
+
       // Get incidents data by district
       const incidentsQuery = this.districtIncidentsRepo
         .createQueryBuilder('dir')
@@ -50,10 +58,14 @@ export class SummariesService {
         ])
         .where('dir.report_date BETWEEN :from AND :to', { from, to })
         .groupBy('dir.district');
+      
+      console.log('Executing incidents query...');
 
       const incidentsResults = await incidentsQuery.getRawMany();
+      console.log('Incidents data fetched:', { count: incidentsResults.length });
 
       // Get schools data by district
+      console.log('Executing schools query...');
       const schoolsQuery = this.schoolDamagesRepo
         .createQueryBuilder('esd')
         .select([
@@ -65,8 +77,10 @@ export class SummariesService {
         .groupBy('esd.district');
 
       const schoolsResults = await schoolsQuery.getRawMany();
+      console.log('Schools data fetched:', { count: schoolsResults.length });
 
       // Get livestock data by district
+      console.log('Executing livestock query...');
       const livestockQuery = this.livestockLossesRepo
         .createQueryBuilder('ll')
         .select([
@@ -78,8 +92,10 @@ export class SummariesService {
         .groupBy('ll.district');
 
       const livestockResults = await livestockQuery.getRawMany();
+      console.log('Livestock data fetched:', { count: livestockResults.length });
 
       // Create division map for aggregation
+      console.log('Processing data and creating division map...');
       const divisionMap = new Map<string, DivisionRow>();
 
       // Process incidents data
@@ -173,5 +189,11 @@ export class SummariesService {
         last_updated: lastUpdated,
       };
     });
+    } catch (error) {
+      console.error('Error in getDivisionSummary:', error);
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to get division summary',
+      );
+    }
   }
 }

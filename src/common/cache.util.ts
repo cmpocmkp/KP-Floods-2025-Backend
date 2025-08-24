@@ -22,12 +22,26 @@ export async function withCache<T>(
   key: string,
   fn: () => Promise<T>,
 ): Promise<T> {
-  const cached = apiCache.get(key) as T | undefined;
-  if (cached !== undefined) {
-    return cached;
-  }
+  try {
+    const cached = apiCache.get(key) as T | undefined;
+    if (cached !== undefined) {
+      console.log('Cache hit for key:', key);
+      return cached;
+    }
 
-  const result = await fn();
-  apiCache.set(key, result);
-  return result;
+    console.log('Cache miss for key:', key);
+    const result = await fn();
+    
+    if (result === undefined || result === null) {
+      console.warn('Attempted to cache null/undefined result for key:', key);
+      throw new Error('Cannot cache null or undefined result');
+    }
+
+    apiCache.set(key, result);
+    return result;
+  } catch (error) {
+    console.error('Cache error:', error);
+    // On cache error, execute the function directly
+    return fn();
+  }
 }
