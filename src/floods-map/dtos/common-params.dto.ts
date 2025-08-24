@@ -1,6 +1,21 @@
-import { IsDateString, IsOptional, IsEnum, IsBoolean, IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsEnum, IsBoolean, IsString, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface, Validate } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+
+@ValidatorConstraint({ name: 'isNotFutureDate', async: false })
+export class IsNotFutureDateConstraint implements ValidatorConstraintInterface {
+  validate(date: string, args: ValidationArguments) {
+    if (!date) return true; // Skip validation if date is not provided
+    const inputDate = new Date(date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    return inputDate <= today;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Date cannot be in the future';
+  }
+}
 
 export enum GroupByPeriod {
   DAILY = 'daily',
@@ -10,20 +25,22 @@ export enum GroupByPeriod {
 export class CommonQueryParams {
   @ApiProperty({
     description: 'Start date (YYYY-MM-DD)',
-    example: '2025-08-14',
+    example: '2024-03-14',
     required: false,
   })
   @IsDateString()
   @IsOptional()
+  @Validate(IsNotFutureDateConstraint)
   date_from?: string;
 
   @ApiProperty({
     description: 'End date (YYYY-MM-DD)',
-    example: '2025-08-20',
+    example: '2024-03-20',
     required: false,
   })
   @IsDateString()
   @IsOptional()
+  @Validate(IsNotFutureDateConstraint)
   date_to?: string;
 
   @ApiProperty({
