@@ -44,8 +44,9 @@ export class SummariesService {
       });
 
       return withCache(cacheKey, async () => {
-      console.log('Starting to fetch division summary data...');
-      console.log('Date range:', { from, to });
+        try {
+          console.log('Starting to fetch division summary data...');
+          console.log('Date range:', { from, to });
 
       // Get incidents data by district
       const incidentsQuery = this.districtIncidentsRepo
@@ -59,6 +60,11 @@ export class SummariesService {
         ])
         .where('dir.report_date BETWEEN :from AND :to', { from, to })
         .groupBy('dir.district');
+
+      // Log the raw SQL query
+      const [rawSql, parameters] = incidentsQuery.getQueryAndParameters();
+      console.log('Incidents Query SQL:', rawSql);
+      console.log('Query Parameters:', parameters);
       
       console.log('Executing incidents query...');
 
@@ -184,12 +190,19 @@ export class SummariesService {
         .sort()
         .pop();
 
-      return {
-        rows,
-        totals,
-        last_updated: lastUpdated,
-      };
-    });
+          return {
+            rows,
+            totals,
+            last_updated: lastUpdated,
+          };
+        } catch (error) {
+          console.error('Error in data fetching:', error);
+          if (error instanceof Error) {
+            console.error('Stack trace:', error.stack);
+          }
+          throw error;
+        }
+      });
     } catch (error) {
       console.error('Error in getDivisionSummary:', error);
       throw new Error(

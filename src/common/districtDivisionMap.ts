@@ -1,4 +1,17 @@
 export const districtToDivisionMap: Record<string, string> = {
+  // Common variations
+  'di khan': 'Dera Ismail Khan',
+  'dir lower': 'Malakand',
+  'dir upper': 'Malakand',
+  'dikhan': 'Dera Ismail Khan',
+  'dera ismail': 'Dera Ismail Khan',
+  'dirlow': 'Malakand',
+  'dirupp': 'Malakand',
+  'waziristan north': 'Bannu',
+  'waziristan south': 'Dera Ismail Khan',
+  'kohistan lower': 'Hazara',
+  'kohistan upper': 'Hazara',
+  'kohistan kolai pallas': 'Hazara',
   // Peshawar Division
   'peshawar': 'Peshawar',
   'charsadda': 'Peshawar',
@@ -55,10 +68,20 @@ export function getDistrictDivision(district: string): string {
     console.warn('Empty district name provided');
     return 'Unknown';
   }
-  const normalizedDistrict = district.toLowerCase().trim();
+  
+  // Normalize the district name by converting to lowercase, removing extra spaces
+  const normalizedDistrict = district.toLowerCase().trim()
+    // Replace multiple spaces with single space
+    .replace(/\s+/g, ' ')
+    // Remove special characters and numbers
+    .replace(/[^a-z\s]/g, '');
+
   const division = districtToDivisionMap[normalizedDistrict];
+  
   if (!division) {
-    console.warn(`Unknown district: ${district}`);
+    // Log the normalized district name to help debug mapping issues
+    console.warn(`Unknown district: ${district} (normalized: ${normalizedDistrict})`);
   }
+  
   return division || 'Unknown';
 }

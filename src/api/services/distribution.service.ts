@@ -49,8 +49,13 @@ export class DistributionService {
       // Get livestock data
       const livestockQuery = this.livestockLossesRepo
         .createQueryBuilder('ll')
-        .select('SUM(ll.cattles_perished) as livestock_lost')
-        .where('ll.created_at BETWEEN :from AND :to', { from, to });
+        .select([
+          'COALESCE(SUM(ll.cattles_perished), 0) + ' +
+          'COALESCE(SUM(ll.big_cattles), 0) + ' +
+          'COALESCE(SUM(ll.small_cattles), 0) + ' +
+          'COALESCE(SUM(ll.other), 0) as livestock_lost'
+        ])
+        .where('ll.report_date BETWEEN :from AND :to', { from, to });
 
       const livestockResult = await livestockQuery.getRawOne();
 
