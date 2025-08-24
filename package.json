@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "start": "node dist/main.js",
-    "start:prod": "node dist/main.js",
+    "start:prod": "node --experimental-crypto-policy=node10 dist/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "deploy:worker": "wrangler deploy",
