@@ -18,9 +18,11 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      async () => this.postgres.isHealthy('postgres_db'), // Use custom health indicator
-      async () => this.memory.checkHeap('memory_heap', 200 * 1024 * 1024),
-      async () => this.memory.checkRSS('memory_rss', 3000 * 1024 * 1024),
+      async () => this.postgres.isHealthy('postgres_db'),
+      // Check if heap is under 512MB
+      async () => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024),
+      // Check if RSS is under 1GB
+      async () => this.memory.checkRSS('memory_rss', 1024 * 1024 * 1024),
     ]);
   }
 }
