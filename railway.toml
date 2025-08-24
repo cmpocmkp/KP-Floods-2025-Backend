@@ -4,6 +4,7 @@ nodeVersion = "18.x"
 [deploy]
 startCommand = "npm run start:prod"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
-healthcheckInterval = 30
+healthcheckTimeout = 60
+healthcheckInterval = 15
+startupTimeout = 300
 restartPolicyType = "on_failure"
